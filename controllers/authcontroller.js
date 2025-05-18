@@ -114,7 +114,7 @@ exports.postForgotPassword = async (req, res) => {
     user.resetTokenExpires = Date.now() + 3600000; // 1 hora
     await user.save();
 
-    const resetLink = `https://smartshelft.com/auth/reset-password/${token}`;
+    const resetLink = `https://https://pruebasmart.onrender.com/auth/reset-password/${token}`;
 
     const mailOptions = {
       from: '"SMARTSHELF" <administrador@smartshelft.com>',
