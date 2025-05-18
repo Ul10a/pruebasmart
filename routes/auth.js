@@ -13,7 +13,6 @@ router.get('/contact', (req, res) => { res.render('contact'); });
 router.get('/help', (req, res) => { res.render('help'); });
 
 // Recuperación de contraseña (nuevo)
-// Agregar estas rutas
 router.post('/forgot-password', authController.postForgotPassword);
 router.get('/reset-password/:token', authController.getResetPassword);
 router.post('/reset-password/:token', authController.postResetPassword);
