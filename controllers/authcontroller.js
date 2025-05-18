@@ -1,9 +1,11 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 
 // Configuración del transporter para Namecheap Private Email
+require('dotenv').config();
 const transporter = nodemailer.createTransport({
   host: 'mail.privateemail.com',
   port: 587,
