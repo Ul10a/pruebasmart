@@ -93,7 +93,7 @@ exports.logout = (req, res) => {
 };
 
 // Mostrar formulario para recuperar contraseña (ahora manejado en el frontend)
-exports.getForgotPassword = (req, res) => {
+exports.getForgotPassword = async (req, res) => {
   res.status(404).send('Esta ruta no se usa directamente');
 };
 
