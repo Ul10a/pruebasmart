@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro | SMARTSHELF</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .title {
+      color: white;
+      text-align: center;
+      margin-bottom: 0.2rem;
+      font-size: 3rem;
+      font-weight: bold;
+      animation: slideInTop 1s ease;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      color: #e0e0e0;
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      animation: fadeInSub 1.2s ease;
+    }
+
+    @keyframes slideInTop {
+      0% { transform: translateY(-40px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeInSub {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .register-box {
+      background: #fff;
+      padding: 2rem 3rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: slideIn 0.8s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .register-box h1 {
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    .register-box input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .register-box button {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    .register-box button:hover {
+      background: #5a67d8;
+    }
+
+    .register-box a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .register-box a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">SMARTSHELF</div>
+  <div class="subtitle">Gestiona de manera inteligente tus productos</div>
+
+  <div class="register-box">
+    <h1>Registro de Usuario</h1>
+    <form action="/register" method="POST">
+      <input type="text" name="username" placeholder="Usuario" required>
+      <input type="email" name="email" placeholder="Correo electrónico" required>
+      <input type="password" name="password" placeholder="Contraseña" required>
+      <button type="submit">Registrarse</button>
+    </form>
+    <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
+  </div>
+</body>
+</html>

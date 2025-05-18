@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Iniciar Sesión | SMARTSHELF</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #5a67d8, #764ba2);
+      background-attachment: fixed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 1s ease-in-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(90, 103, 216, 0.85), rgba(118, 75, 162, 0.85));
+      z-index: -1;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .title {
+      color: white;
+      text-align: center;
+      margin-bottom: 0.2rem;
+      font-size: 3rem;
+      font-weight: bold;
+      animation: slideInTop 1s ease;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      color: #e0e0e0;
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      animation: fadeInSub 1.2s ease;
+    }
+
+    @keyframes slideInTop {
+      0% { transform: translateY(-40px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeInSub {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-box {
+      background: #fff;
+      padding: 2rem 3rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: slideIn 0.8s ease-out;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .login-box button {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    .login-box button:hover {
+      background: #5a67d8;
+    }
+
+    .login-box a {
+      color: #667eea;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .login-box a:hover {
+      text-decoration: underline;
+    }
+
+    /* ---------------- Formulario flotante ---------------- */
+    .forgot-password {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 380px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 20;
+    }
+
+    .forgot-password.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .forgot-password h2 {
+      margin-bottom: 1rem;
+      color: #333;
+      font-size: 1.5rem;
+    }
+
+    .forgot-password form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .forgot-password input {
+      padding: 12px;
+      width: 100%;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.3s ease;
+    }
+
+    .forgot-password input:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+
+    .forgot-password button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      width: 100%;
+    }
+
+    .forgot-password button:hover {
+      background: linear-gradient(135deg, #5a67d8, #6b46c1);
+    }
+  </style>
+</head>
+<body>
+  <div class="title">SMARTSHELF</div>
+  <div class="subtitle">Gestiona de manera inteligente tus productos</div>
+
+  <div class="login-box">
+  <h1>Iniciar Sesión</h1>
+
+  <% if (error) { %>
+    <div style="color: red; margin-bottom: 10px; font-size: 0.9rem;">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <form action="/login" method="POST">
+    <input type="text" name="username" placeholder="Usuario" required>
+    <input type="password" name="password" placeholder="Contraseña" required>
+    <button type="submit">Entrar</button>
+  </form>
+
+  <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
+  <p><a href="#" id="toggleForgot">¿Olvidaste tus credenciales?</a></p>
+</div>
+
+  <!-- Formulario flotante -->
+  <div class="forgot-password" id="forgotForm">
+  <h2>🔐 Recuperar credenciales</h2>
+  <form action="/auth/forgot-password" method="POST">
+    <input type="email" name="email" placeholder="Correo electrónico registrado" required>
+    <button type="submit">Enviar instrucciones</button>
+  </form>
+</div>
+
+  <script>
+    const toggleLink = document.getElementById('toggleForgot');
+    const forgotForm = document.getElementById('forgotForm');
+
+    toggleLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      forgotForm.classList.toggle('show');
+    });
+  </script>
+</body>
+</html>

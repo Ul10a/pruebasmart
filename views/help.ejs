@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ayuda Técnica | SMARTSHELF</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #f1f5f9, #dbeafe);
+      color: #1e293b;
+    }
+
+    .navbar {
+      background-color: white;
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+    }
+
+    .navbar h1 {
+      margin: 0;
+      color: #1d4ed8;
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+
+    .content {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    }
+
+    h2 {
+      color: #1e40af;
+      margin-top: 1.5rem;
+    }
+
+    ul {
+      line-height: 1.7;
+      padding-left: 1.5rem;
+    }
+
+    ul li {
+      margin-bottom: 0.8rem;
+    }
+
+    .volver {
+      margin-top: 2rem;
+      display: inline-block;
+      padding: 0.7rem 1.4rem;
+      background-color: #1d4ed8;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background 0.3s ease;
+    }
+
+    .volver:hover {
+      background-color: #1e3a8a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <h1 onclick="location.href='/dashboard'">SMARTSHELF</h1>
+  </div>
+
+  <div class="content">
+    <h2>¿Cómo funciona SMARTSHELF?</h2>
+    <p>SMARTSHELF es un sistema digital para la gestión de productos físicos en tiempo real. Su objetivo es mejorar la administración en tiendas físicas mediante el uso de pantallas conectadas a Arduino que muestran información útil al cliente. A continuación, te explicamos cada parte del sistema:</p>
+
+    <h2>🔐 Acceso Seguro</h2>
+    <ul>
+      <li>Los usuarios deben iniciar sesión con su usuario y contraseña.</li>
+      <li>La autenticación garantiza privacidad y control individual de los productos.</li>
+    </ul>
+
+    <h2>📦 Gestión de Productos</h2>
+    <ul>
+      <li>Los usuarios pueden crear, editar y eliminar productos fácilmente.</li>
+      <li>Cada producto incluye nombre, precio, estado de promoción y disponibilidad.</li>
+      <li>Solo los productos disponibles se pueden enviar al Arduino.</li>
+    </ul>
+
+    <h2>🖼️ Vista Estilo Tienda</h2>
+    <ul>
+      <li>Los productos se muestran como tarjetas visuales interactivas.</li>
+      <li>Al seleccionar una tarjeta, se habilita un botón flotante de envío.</li>
+      <li>Las tarjetas tienen animaciones y diseño elegante para facilitar la experiencia.</li>
+    </ul>
+
+    <h2>🔌 Comunicación con Arduino</h2>
+    <ul>
+      <li>Al pulsar el botón flotante, se abre una burbuja para elegir el puerto serial.</li>
+      <li>La información del producto seleccionado se envía por puerto serial.</li>
+      <li>La pantalla LCD muestra:
+        <ul>
+          <li><strong>Línea 1:</strong> nombre del producto.</li>
+          <li><strong>Línea 2:</strong> precio y promoción (si aplica).</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>⚙️ Componentes Electrónicos</h2>
+    <ul>
+      <li><strong>Arduino Uno:</strong> placa principal que recibe la información.</li>
+      <li><strong>Pantalla LCD 16x2:</strong> muestra los datos enviados.</li>
+      <li><strong>Conexión Serial:</strong> USB entre el servidor y Arduino.</li>
+      <li><strong>Opcional:</strong> relés u otros módulos que pueden activarse con comandos.</li>
+    </ul>
+
+    <h2>📈 Ventajas</h2>
+    <ul>
+      <li>Visualización clara y digital de productos sin etiquetas físicas.</li>
+      <li>Actualización en tiempo real desde el panel web.</li>
+      <li>Ideal para supermercados, tiendas tecnológicas, farmacias y más.</li>
+    </ul>
+
+    <p>¿Tienes más dudas? Visita la sección <a href="/contact">Habla con Nosotros</a>.</p>
+
+    <a class="volver" href="/dashboard">Volver al Dashboard</a>
+  </div>
+</body>
+</html>

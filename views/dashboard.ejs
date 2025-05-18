@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SMARTSHELF - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/scrollreveal"></script>
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md fixed w-full top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-blue-600">SMARTSHELF</h1>
+      <ul class="flex space-x-6 font-semibold">
+        <li><a href="/products" class="hover:text-blue-500 transition">Productos</a></li>
+        <li><a href="/contact" class="hover:text-blue-500 transition">Contactanos</a></li>
+        <li><a href="/help" class="hover:text-blue-500 transition">Ayuda</a></li>
+        <li>
+          <form action="/logout" method="POST">
+            <button class="text-red-500 hover:text-red-700">Cerrar sesión</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="pt-24 px-4 max-w-7xl mx-auto">
+
+    <!-- Bienvenida -->
+    <section class="text-center mb-16">
+      <h2 class="text-4xl font-bold mb-2 text-gray-800">¡Bienvenido, <%= username %>!</h2>
+      <p class="text-lg text-gray-600">Gracias por usar SMARTSHELF para gestionar tus productos</p>
+    </section>
+
+    <!-- Imágenes destacadas -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
+      <div class="bg-white shadow-md rounded-xl overflow-hidden transform hover:scale-105 transition">
+        <img src="https://www.022estudio.com/wp-content/uploads/2023/03/tiendas-de-ropa-y-retail-como-favorece-el-diseno-a-la-decision-de-compra-022-studio-scaled.jpg" class="w-full h-48 object-cover rounded-xl">
+      </div>
+      <div class="bg-white shadow-md rounded-xl overflow-hidden transform hover:scale-105 transition">
+        <img src="https://www.muycanal.com/wp-content/uploads/2019/01/BEEP.jpg" class="w-full h-48 object-cover rounded-xl">
+      </div>
+      <div class="bg-white shadow-md rounded-xl overflow-hidden transform hover:scale-105 transition">
+        <img src="https://media.istockphoto.com/id/1451277246/es/foto/pasillo-de-supermercado-piernas-de-mujer-y-canasta-para-comprar-en-tienda-de-comestibles.jpg?s=612x612&w=0&k=20&c=Xy4WKT_awtMQol_gJXm2ZnVX3YykBNiBrI6LVbqAkgs=" class="w-full h-48 object-cover rounded-xl">
+      </div>
+    </section>
+
+    <!-- Misión y visión -->
+    <section class="grid sm:grid-cols-2 gap-10 text-center mb-20">
+      <div class="p-6 bg-blue-100 rounded-lg shadow">
+        <h3 class="text-2xl font-bold text-blue-800 mb-2">Nuestra Misión</h3>
+        <p>Ofrecer una plataforma intuitiva para la gestión inteligente de productos en tienda física, conectando tecnología y simplicidad.</p>
+      </div>
+      <div class="p-6 bg-green-100 rounded-lg shadow">
+        <h3 class="text-2xl font-bold text-green-800 mb-2">Nuestra Visión</h3>
+        <p>Ser líderes en soluciones inteligentes de visualización de productos en el comercio físico.</p>
+      </div>
+    </section>
+
+    <!-- Usuarios activos -->
+    <footer class="text-center text-sm text-gray-500 pb-6">
+      Actualmente hay <span id="active-users" class="font-bold text-blue-600">...</span> usuarios activos.
+    </footer>
+  </main>
+
+  <!-- Animaciones ScrollReveal -->
+  <script>
+    ScrollReveal().reveal('section', { 
+      duration: 1000,
+      origin: 'bottom',
+      distance: '30px',
+      reset: true
+    });
+  </script>
+
+  <!-- Simulación de usuarios activos (puedes conectar esto a backend más adelante) -->
+  <script>
+    document.getElementById('active-users').textContent = Math.floor(Math.random() * 20) + 1;
+  </script>
+</body>
+</html>
