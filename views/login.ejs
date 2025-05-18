@@ -233,26 +233,43 @@
 <script>
   document.getElementById('recoveryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const email = this.email.value;
+    const form = e.target;
+    const formData = new FormData(form);
     
+    // Mostrar mensaje de carga
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    submitBtn.disabled = true;
+
     try {
-      const response = await fetch('/auth/forgot-password', {
+      const response = await fetch(form.action, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email })
+        body: formData
       });
       
       if (response.ok) {
+        // Mostrar mensaje de éxito
         document.getElementById('successMessage').style.display = 'block';
+        
+        // Ocultar formulario y mensaje después de 3 segundos
         setTimeout(() => {
           document.getElementById('forgotForm').classList.remove('show');
           document.getElementById('successMessage').style.display = 'none';
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
         }, 3000);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Error al enviar la solicitud');
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
       }
     } catch (error) {
       console.error('Error:', error);
+      alert('Error de conexión');
+      submitBtn.innerHTML = originalBtnText;
+      submitBtn.disabled = false;
     }
   });
 </script>
