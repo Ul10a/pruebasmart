@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 
 // Configuración del transporter para Namecheap Private Email
 const transporter = nodemailer.createTransport({
-  host: 'mail.privateemail.com',
+  host: 'mail.smartshelft.com',
   port: 587,
   secure: false,
   auth: {
@@ -14,8 +14,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD
   },
   tls: {
-    ciphers: 'SSLv3',
-    rejectUnauthorized: false // Solo para desarrollo/testing
+    rejectUnauthorized: false
   },
   logger: true // Para debug
 });
