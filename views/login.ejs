@@ -247,14 +247,14 @@
 
     try {
       // Usa la URL completa con tu dominio
-      const response = await fetch('https://pruebasmart.onrender.com//auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email: email.trim() })
-      });
+      const response = await fetch('https://smartshelft.com/auth/forgot-password', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ email: email.trim() })
+});
+
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
