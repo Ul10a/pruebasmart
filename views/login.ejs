@@ -234,46 +234,59 @@
     e.preventDefault();
     const email = this.email.value;
     const submitBtn = this.querySelector('button');
-    const originalBtnText = submitBtn.innerHTML;
+    const errorElement = document.getElementById('errorMessage');
+    const successElement = document.getElementById('successMessage');
     
-    // Mostrar estado de carga
+    // Reset messages
+    errorElement.style.display = 'none';
+    successElement.style.display = 'none';
+    
+    // Show loading state
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-    
+
     try {
       const response = await fetch('/auth/forgot-password', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: email.trim() })
       });
-      
+
+      // Check if response is OK (status 200-299)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `Error HTTP: ${response.status}`);
+      }
+
       const data = await response.json();
       
       if (data.success) {
-        // Mostrar mensaje de éxito
-        document.getElementById('successMessage').style.display = 'block';
-        document.getElementById('errorMessage').style.display = 'none';
-        
-        // Ocultar después de 3 segundos
+        successElement.style.display = 'block';
         setTimeout(() => {
           document.getElementById('forgotForm').classList.remove('show');
-          document.getElementById('successMessage').style.display = 'none';
+          successElement.style.display = 'none';
         }, 3000);
       } else {
-        // Mostrar mensaje de error
-        document.getElementById('errorMessage').textContent = data.message;
-        document.getElementById('errorMessage').style.display = 'block';
+        throw new Error(data.message || 'Error desconocido');
       }
     } catch (error) {
-      console.error('Error:', error);
-      document.getElementById('errorMessage').textContent = 'Error de conexión con el servidor';
-      document.getElementById('errorMessage').style.display = 'block';
+      console.error('Error en la solicitud:', error);
+      errorElement.textContent = error.message || 'Error de conexión con el servidor';
+      errorElement.style.display = 'block';
+      
+      // Opcional: Mostrar detalles técnicos en desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Detalles del error:', {
+          email,
+          error: error.stack
+        });
+      }
     } finally {
-      // Restaurar botón
       submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
+      submitBtn.innerHTML = 'Enviar instrucciones';
     }
   });
 </script>
