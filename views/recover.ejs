@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Estilos similares a tus otros formularios -->
+</head>
+<body>
+  <div class="container">
+    <h1>Recupera tu contraseña, <%= username %></h1>
+    <form id="resetForm">
+      <input type="password" name="password" placeholder="Nueva contraseña" required>
+      <input type="password" name="confirmPassword" placeholder="Confirmar contraseña" required>
+      <button type="submit">Enviar</button>
+    </form>
+    <div id="successMsg" style="display:none;"></div>
+  </div>
+
+  <script>
+    document.getElementById('resetForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (this.password.value !== this.confirmPassword.value) {
+        alert('Las contraseñas no coinciden');
+        return;
+      }
+
+      try {
+        const response = await fetch(window.location.pathname, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            password: this.password.value
+          })
+        });
+
+        if (response.ok) {
+          document.getElementById('successMsg').style.display = 'block';
+          document.getElementById('successMsg').textContent = 'Contraseña cambiada con éxito';
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 3000);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+  </script>
+</body>
+</html>
