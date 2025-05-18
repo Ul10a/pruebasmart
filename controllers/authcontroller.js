@@ -5,18 +5,19 @@ const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 
 // Configuración del transporter para Namecheap Private Email
-require('dotenv').config();
 const transporter = nodemailer.createTransport({
   host: 'mail.privateemail.com',
   port: 587,
   secure: false,
   auth: {
     user: 'administrador@smartshelft.com',
-    pass: process.env.EMAIL_PASSWORD // Usa variables de entorno para la contraseña
+    pass: process.env.EMAIL_PASSWORD
   },
   tls: {
-    rejectUnauthorized: false // Solo para desarrollo, quitar en producción
-  }
+    ciphers: 'SSLv3',
+    rejectUnauthorized: false // Solo para desarrollo/testing
+  },
+  logger: true // Para debug
 });
 
 // Mostrar formulario de registro
@@ -100,9 +101,11 @@ exports.getForgotPassword = (req, res) => {
 exports.postForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    console.log('Solicitud recibida para email:', email); // Log de depuración
 
+    const user = await User.findOne({ email });
     if (!user) {
+      console.log('Email no encontrado:', email);
       return res.status(400).json({ 
         success: false, 
         message: 'Correo no registrado' 
@@ -111,10 +114,10 @@ exports.postForgotPassword = async (req, res) => {
 
     const token = crypto.randomBytes(32).toString('hex');
     user.resetToken = token;
-    user.resetTokenExpires = Date.now() + 3600000; // 1 hora
+    user.resetTokenExpires = Date.now() + 3600000;
     await user.save();
 
-    const resetLink = `https://https://pruebasmart.onrender.com/auth/reset-password/${token}`;
+    const resetLink = `https://smartshelft.com/auth/reset-password/${token}`;
 
     const mailOptions = {
       from: '"SMARTSHELF" <administrador@smartshelft.com>',
@@ -143,17 +146,29 @@ exports.postForgotPassword = async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
-    res.json({ 
-      success: true,
-      message: 'Se han enviado instrucciones a tu correo'
+    // Envío del correo con verificación
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error al enviar correo:', error);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error al enviar el correo de recuperación',
+          error: error.message
+        });
+      }
+      console.log('Correo enviado:', info.response);
+      res.json({ 
+        success: true,
+        message: 'Se han enviado instrucciones a tu correo'
+      });
     });
 
   } catch (error) {
     console.error('Error en postForgotPassword:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error al procesar la solicitud' 
+      message: 'Error al procesar la solicitud',
+      error: error.message
     });
   }
 };
