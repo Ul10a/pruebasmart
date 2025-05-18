@@ -246,7 +246,8 @@
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
     try {
-      const response = await fetch('/auth/forgot-password', {
+      // Usa la URL completa con tu dominio
+      const response = await fetch('https://smartshelft.com/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -255,10 +256,9 @@
         body: JSON.stringify({ email: email.trim() })
       });
 
-      // Check if response is OK (status 200-299)
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `Error HTTP: ${response.status}`);
+        throw new Error(errorData?.message || `Error en la solicitud: ${response.status}`);
       }
 
       const data = await response.json();
@@ -277,13 +277,11 @@
       errorElement.textContent = error.message || 'Error de conexión con el servidor';
       errorElement.style.display = 'block';
       
-      // Opcional: Mostrar detalles técnicos en desarrollo
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Detalles del error:', {
-          email,
-          error: error.stack
-        });
-      }
+      // Solo para debug (eliminar en producción)
+      console.debug('Detalles del error:', {
+        email: email,
+        error: error
+      });
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = 'Enviar instrucciones';
