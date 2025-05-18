@@ -13,8 +13,10 @@ router.get('/contact', (req, res) => { res.render('contact'); });
 router.get('/help', (req, res) => { res.render('help'); });
 
 // Recuperación de contraseña (nuevo)
-router.get('/forgot-password', authController.getForgotPassword); // Se añadió el GET para mostrar el formulario
-router.post('/forgot-password', authController.postForgotPassword); // Se modificó el POST para usar la función correcta
+// Agregar estas rutas
+router.post('/forgot-password', authController.postForgotPassword);
+router.get('/reset-password/:token', authController.getResetPassword);
+router.post('/reset-password/:token', authController.postResetPassword);
 
 // Ruta protegida para el dashboard
 router.get('/dashboard', (req, res, next) => {
