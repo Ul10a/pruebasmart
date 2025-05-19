@@ -101,6 +101,7 @@ exports.postForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     
+    // Validación básica
     if (!email) {
       return res.status(400).json({
         success: false,
@@ -108,6 +109,7 @@ exports.postForgotPassword = async (req, res) => {
       });
     }
 
+    // Buscar usuario
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({
@@ -116,16 +118,30 @@ exports.postForgotPassword = async (req, res) => {
       });
     }
 
-    // Generar token
+    // Generar token seguro
     const token = crypto.randomBytes(32).toString('hex');
     user.resetToken = token;
-    user.resetTokenExpires = Date.now() + 3600000; // 1 hora
+    user.resetTokenExpires = Date.now() + 3600000; // 1 hora de expiración
     await user.save();
 
-    // Configurar correo
+    // Configurar enlace
+    const resetLink = `https://pruebasmart.onrender.com/auth/reset-password/${token}`;
 
-    const resetLink = `https://pruebasmart.onrender.com/reset-password/${token}`;
+    // Configurar transporte de correo (debería estar definido al inicio del archivo)
+    const transporter = nodemailer.createTransport({
+      host: 'mail.smartshelft.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'administrador@smartshelft.com',
+        pass: process.env.EMAIL_PASSWORD
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
 
+    // Plantilla de correo mejorada
     const mailOptions = {
       from: '"SMARTSHELF" <administrador@smartshelft.com>',
       to: user.email,
@@ -134,8 +150,7 @@ exports.postForgotPassword = async (req, res) => {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #4a90e2;">Recuperación de contraseña</h2>
           <p>Hola ${user.username},</p>
-          <p>Hemos recibido una solicitud para restablecer tu contraseña en SMARTSHELF.</p>
-          <p>Por favor, haz clic en el siguiente enlace para continuar:</p>
+          <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
           <p style="margin: 20px 0;">
             <a href="${resetLink}" 
                style="background-color: #4a90e2; color: white; padding: 10px 20px; 
@@ -143,18 +158,13 @@ exports.postForgotPassword = async (req, res) => {
               Restablecer contraseña
             </a>
           </p>
-          <p>Si no solicitaste este cambio, puedes ignorar este mensaje.</p>
-          <p>El enlace expirará en 1 hora.</p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 12px; color: #777;">
-            © ${new Date().getFullYear()} SMARTSHELF. Todos los derechos reservados.
-          </p>
+          <p><small>Si no solicitaste este cambio, ignora este correo. El enlace expira en 1 hora.</small></p>
         </div>
       `
     };
 
-    // Envío del correo con verificación
-     await transporter.sendMail(mailOptions);
+    // Enviar correo
+    await transporter.sendMail(mailOptions);
     
     res.json({
       success: true,
@@ -170,7 +180,6 @@ exports.postForgotPassword = async (req, res) => {
   }
 };
 
-// Mostrar formulario para establecer nueva contraseña
 exports.getResetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -180,34 +189,42 @@ exports.getResetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.render('error', { 
-        error: 'Token inválido o expirado. Por favor, solicita un nuevo enlace.' 
+      return res.status(400).render('error', { 
+        error: 'Token inválido o expirado' 
       });
     }
 
-    res.render('forgot-password', { 
+    res.render('recover', { 
       token,
-      username: user.username 
+      username: user.username,
+      layout: false  // Si usas layouts
     });
 
   } catch (error) {
     console.error('Error en getResetPassword:', error);
-    res.render('error', { 
+    res.status(500).render('error', { 
       error: 'Error al procesar la solicitud' 
     });
   }
 };
 
-// Procesar nueva contraseña
 exports.postResetPassword = async (req, res) => {
   try {
     const { token } = req.params;
     const { password, confirmPassword } = req.body;
 
+    // Validaciones
     if (password !== confirmPassword) {
       return res.status(400).json({ 
         success: false, 
         message: 'Las contraseñas no coinciden' 
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'La contraseña debe tener al menos 6 caracteres' 
       });
     }
 
@@ -223,6 +240,7 @@ exports.postResetPassword = async (req, res) => {
       });
     }
 
+    // Actualizar contraseña
     const hashed = await bcrypt.hash(password, 10);
     user.password = hashed;
     user.resetToken = undefined;
@@ -231,7 +249,8 @@ exports.postResetPassword = async (req, res) => {
 
     res.json({ 
       success: true,
-      message: 'Contraseña cambiada con éxito' 
+      message: 'Contraseña actualizada correctamente',
+      redirect: '/login'
     });
 
   } catch (error) {
