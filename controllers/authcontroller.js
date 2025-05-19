@@ -5,21 +5,21 @@ const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 
 // Configuración del transporter para Namecheap Private Email
-const transporter = nodemailer.createTransport({
-  host: 'mail.smartshelft.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: 'administrador@smartshelft.com',
-    pass: process.env.EMAIL_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  logger: true // Para debug
-});
+  const transporter = nodemailer.createTransport({
+      host: 'mail.smartshelft.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'administrador@smartshelft.com',
+        pass: process.env.EMAIL_PASSWORD // Usa variables de entorno
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
 
 // Mostrar formulario de registro
+
 exports.showRegister = (req, res) => {
   res.render('register');
 };
@@ -100,21 +100,29 @@ exports.getForgotPassword = async (req, res) => {
 exports.postForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log('Solicitud recibida para email:', email); // Log de depuración
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      console.log('Email no encontrado:', email);
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Correo no registrado' 
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'El correo electrónico es requerido'
       });
     }
 
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Correo no registrado'
+      });
+    }
+
+    // Generar token
     const token = crypto.randomBytes(32).toString('hex');
     user.resetToken = token;
-    user.resetTokenExpires = Date.now() + 3600000;
+    user.resetTokenExpires = Date.now() + 3600000; // 1 hora
     await user.save();
+
+    // Configurar correo
 
     const resetLink = `https://pruebasmart.onrender.com/reset-password/${token}`;
 
@@ -146,28 +154,18 @@ exports.postForgotPassword = async (req, res) => {
     };
 
     // Envío del correo con verificación
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error al enviar correo:', error);
-        return res.status(500).json({ 
-          success: false, 
-          message: 'Error al enviar el correo de recuperación',
-          error: error.message
-        });
-      }
-      console.log('Correo enviado:', info.response);
-      res.json({ 
-        success: true,
-        message: 'Se han enviado instrucciones a tu correo'
-      });
+     await transporter.sendMail(mailOptions);
+    
+    res.json({
+      success: true,
+      message: 'Se han enviado instrucciones a tu correo'
     });
 
   } catch (error) {
     console.error('Error en postForgotPassword:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error al procesar la solicitud',
-      error: error.message
+    res.status(500).json({
+      success: false,
+      message: 'Error al procesar la solicitud'
     });
   }
 };
