@@ -235,39 +235,42 @@
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
-    
-    // Mostrar mensaje de carga
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
+
+    // Mostrar loading
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     submitBtn.disabled = true;
 
     try {
       const response = await fetch(form.action, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
       });
-      
-      if (response.ok) {
-        // Mostrar mensaje de éxito
-        document.getElementById('successMessage').style.display = 'block';
-        
-        // Ocultar formulario y mensaje después de 3 segundos
-        setTimeout(() => {
-          document.getElementById('forgotForm').classList.remove('show');
-          document.getElementById('successMessage').style.display = 'none';
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Error al enviar la solicitud');
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error en la solicitud');
       }
+
+      // Mostrar mensaje de éxito
+      document.getElementById('successMessage').style.display = 'block';
+      form.reset();
+
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        document.getElementById('forgotForm').classList.remove('show');
+        document.getElementById('successMessage').style.display = 'none';
+      }, 3000);
+
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión');
+      alert(error.message || 'Error de conexión con el servidor');
+    } finally {
       submitBtn.innerHTML = originalBtnText;
       submitBtn.disabled = false;
     }
