@@ -3,21 +3,23 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
+const { validationResult } = require('express-validator');
+
+dotenv.config();
 
 // Configuración del transporter para Namecheap Private Email
   const transporter = nodemailer.createTransport({
-      host: 'mail.smartshelft.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'administrador@smartshelft.com',
-        pass: process.env.EMAIL_PASSWORD // Usa variables de entorno
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
+  host: 'mail.smartshelft.com',
+  port: 587,
+  secure: true,
+  auth: {
+    user: 'administrador@smartshelft.com',
+    pass: process.env.EMAIL_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
 // Mostrar formulario de registro
 
 exports.showRegister = (req, res) => {
