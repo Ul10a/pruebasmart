@@ -9,7 +9,7 @@ dotenv.config();
 
 // Configuración del transporter para Namecheap Private Email
   const transporter = nodemailer.createTransport({
-  host: 'mail.smartshelft.com',
+   host: 'mail.smartshelft.com',
   port: 587,
   secure: true,
   auth: {
