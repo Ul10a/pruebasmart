@@ -113,12 +113,14 @@ exports.postForgotPassword = async (req, res) => {
     console.log('Body recibido:', req.body);
     console.log('Headers:', req.headers);
 
-    if (!req.body || Object.keys(req.body).length === 0) {
+    if (!req.body || typeof req.body !== 'object' || Object.keys(req.body).length === 0) {
+      console.error('Error: Body vacío o no es objeto');
       return res.status(400).json({
         success: false,
         message: 'Datos de solicitud no proporcionados'
       });
     }
+
 
     const { email } = req.body;
 
