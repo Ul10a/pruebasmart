@@ -107,27 +107,21 @@ exports.getForgotPassword = async (req, res) => {
 };
 
 // Procesar formulario y enviar correo de recuperación
-exports.postForgotPassword = async (req, res) => {
-  try {
-    // Debug: Verifica lo que llega al servidor
-    console.log('Body recibido:', req.body);
-    console.log('Headers:', req.headers);
-
-    if (!req.body || typeof req.body !== 'object' || Object.keys(req.body).length === 0) {
-      console.error('Error: Body vacío o no es objeto');
-      return res.status(400).json({
+try {
+    // Verificar que el content-type sea correcto
+    if (!req.is('application/json')) {
+      return res.status(400).json({ 
         success: false,
-        message: 'Datos de solicitud no proporcionados'
+        message: 'Content-Type debe ser application/json' 
       });
     }
 
-
     const { email } = req.body;
 
-    if (!email || typeof email !== 'string') {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'El correo electrónico es requerido y debe ser texto'
+        message: 'El correo electrónico es requerido'
       });
     }
 
@@ -179,7 +173,7 @@ exports.postForgotPassword = async (req, res) => {
     // Enviar correo
     await transporter.sendMail(mailOptions);
     
-    res.json({
+     res.json({
       success: true,
       message: 'Se han enviado instrucciones a tu correo'
     });
