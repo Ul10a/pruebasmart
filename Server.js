@@ -74,6 +74,12 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
+
+// Estos middlewares deben estar antes de tus rutas
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
 // Importar rutas
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
