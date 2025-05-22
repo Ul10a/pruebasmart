@@ -109,22 +109,23 @@ exports.getForgotPassword = async (req, res) => {
 // Procesar formulario y enviar correo de recuperación
 exports.postForgotPassword = async (req, res) => {
   try {
+    // Debug: Verifica lo que llega al servidor
+    console.log('Body recibido:', req.body);
+    console.log('Headers:', req.headers);
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos de solicitud no proporcionados'
+      });
+    }
+
     const { email } = req.body;
-    
-    // Validación básica
+
     if (!email) {
       return res.status(400).json({
         success: false,
         message: 'El correo electrónico es requerido'
-      });
-    }
-
-    // Buscar usuario
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Correo no registrado'
       });
     }
 
