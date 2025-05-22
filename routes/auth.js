@@ -4,6 +4,8 @@ const router = express.Router();
 const authController = require('../controllers/authcontroller');
 
 // Mostrar formularios de registro e inicio de sesión
+router.use(express.json()); // Para parsear application/json
+router.use(express.urlencoded({ extended: true }));
 router.get('/register', authController.showRegister);
 router.post('/register', authController.register);
 router.get('/login', authController.showLogin);
