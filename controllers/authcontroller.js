@@ -51,13 +51,25 @@ exports.showLogin = (req, res) => {
 
 // Iniciar sesión
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.render('login', { error: 'Usuario o contraseña requeridos' });
-  }
-
   try {
+    // Verifica primero que el body exista
+    if (!req.body) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Datos de solicitud no proporcionados' 
+      });
+    }
+
+    const { username, password } = req.body;
+
+    // Validación básica
+    if (!username || !password) {
+      return res.status(400).render('login', { 
+        error: 'Usuario y contraseña son requeridos' 
+      });
+    }
+
+    // Resto de tu lógica de login...
     const user = await User.findOne({ username });
     if (!user) {
       return res.render('login', { error: 'Credenciales inválidas' });
@@ -71,17 +83,13 @@ exports.login = async (req, res) => {
     req.session.userId = user._id;
     req.session.username = user.username;
 
-    req.session.save(err => {
-      if (err) {
-        console.error('Error al guardar sesión:', err);
-        return res.render('login', { error: 'Error interno' });
-      }
-      return res.redirect('/dashboard');
-    });
+    res.redirect('/dashboard');
 
   } catch (error) {
     console.error('Error en login:', error);
-    return res.render('login', { error: 'Error del servidor' });
+    res.status(500).render('login', { 
+      error: 'Error interno del servidor' 
+    });
   }
 };
 
