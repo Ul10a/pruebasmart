@@ -107,95 +107,69 @@ exports.getForgotPassword = async (req, res) => {
 };
 
 exports.postForgotPassword = async (req, res) => {
-
-  console.log('Solicitud recibida en /forgot-password');
-  console.log('Body:', req.body);
+  console.log('Solicitud recibida:', req.body); // Debug
+  
   try {
-    // Verificar content-type
-    if (!req.is('application/json')) {
+    // Validación mejorada
+    if (!req.body || typeof req.body !== 'object') {
+      console.error('Body no es objeto');
       return res.status(400).json({ 
-        success: false,
-        message: 'Content-Type debe ser application/json' 
+        success: false, 
+        message: 'Formato de datos inválido' 
       });
     }
 
     const { email } = req.body;
 
-    // Validación
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'El correo electrónico es requerido'
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email inválido' 
       });
     }
 
-
-    const user = await User.findOne({ email });
+    // Buscar usuario
+    const user = await User.findOne({ email }).maxTimeMS(10000);
+    
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Correo no registrado'
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Email no registrado' 
       });
     }
 
+    // Generar token (asegúrate de tener crypto requerido)
     const token = crypto.randomBytes(32).toString('hex');
     user.resetToken = token;
-    user.resetTokenExpires = Date.now() + 3600000;
+    user.resetTokenExpires = Date.now() + 3600000; // 1 hora
     
     await user.save();
 
-    // Configurar enlace
+    // Configurar correo
     const resetLink = `https://pruebasmart.onrender.com/auth/reset-password/${token}`;
-
-    // Configurar transporte de correo (debería estar definido al inicio del archivo)
-    const transporter = nodemailer.createTransport({
-      host: 'mail.smartshelft.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'administrador@smartshelft.com',
-        pass: process.env.EMAIL_PASSWORD
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    // Plantilla de correo mejorada
+    
     const mailOptions = {
-      from: '"SMARTSHELF" <administrador@smartshelft.com>',
+      from: process.env.EMAIL_FROM,
       to: user.email,
-      subject: 'Recuperación de contraseña - SMARTSHELF',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4a90e2;">Recuperación de contraseña</h2>
-          <p>Hola ${user.username},</p>
-          <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-          <p style="margin: 20px 0;">
-            <a href="${resetLink}" 
-               style="background-color: #4a90e2; color: white; padding: 10px 20px; 
-                      text-decoration: none; border-radius: 5px; display: inline-block;">
-              Restablecer contraseña
-            </a>
-          </p>
-          <p><small>Si no solicitaste este cambio, ignora este correo. El enlace expira en 1 hora.</small></p>
-        </div>
-      `
+      subject: 'Restablece tu contraseña',
+      html: `Haz clic <a href="${resetLink}">aquí</a> para restablecer tu contraseña`
     };
 
     // Enviar correo
     await transporter.sendMail(mailOptions);
-    
-     res.json({
+    console.log('Correo enviado a:', user.email);
+
+    return res.json({ 
       success: true,
-      message: 'Se han enviado instrucciones a tu correo'
+      message: 'Instrucciones enviadas a tu correo' 
     });
 
   } catch (error) {
-    console.error('Error en postForgotPassword:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al procesar la solicitud'
+    console.error('Error crítico:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor',
+      error: process.env.NODE_ENV === 'development' ? error.message : null
     });
   }
 };
