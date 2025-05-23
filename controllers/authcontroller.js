@@ -106,18 +106,10 @@ exports.getForgotPassword = async (req, res) => {
   res.status(404).send('Esta ruta no se usa directamente');
 };
 
-// Procesar formulario y enviar correo de recuperación
-try {
-    // Verificar que el content-type sea correcto
-    if (!req.is('application/json')) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Content-Type debe ser application/json' 
-      });
-    }
-
+exports.postForgotPassword = async (req, res) => { // <-- Nota el async aquí
+  try {
     const { email } = req.body;
-
+    
     if (!email) {
       return res.status(400).json({
         success: false,
@@ -125,10 +117,18 @@ try {
       });
     }
 
-    // Generar token seguro
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Correo no registrado'
+      });
+    }
+
     const token = crypto.randomBytes(32).toString('hex');
     user.resetToken = token;
-    user.resetTokenExpires = Date.now() + 3600000; // 1 hora de expiración
+    user.resetTokenExpires = Date.now() + 3600000;
+    
     await user.save();
 
     // Configurar enlace
