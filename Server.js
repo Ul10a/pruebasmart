@@ -15,7 +15,7 @@ const app = express();
 dotenv.config({ path: '.env' });
 
 // Validación de variables de entorno
-const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET', 'EMAIL_USER', 'EMAIL_PASSWORD'];
+const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET'];
 requiredEnvVars.forEach(varName => {
   if (!process.env[varName]) {
     console.error(`❌ Falta la variable de entorno requerida: ${varName}`);
@@ -87,15 +87,8 @@ app.use(session({
   proxy: true
 }));
 
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1d',
-  etag: true,
-  setHeaders: (res, path) => {
-    if (path.endsWith('.html')) {
-      res.setHeader('Cache-Control', 'no-cache');
-    }
-  }
-});
+// Configuración CORREGIDA de archivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
 
 // =============================================
 // 4. RUTAS
