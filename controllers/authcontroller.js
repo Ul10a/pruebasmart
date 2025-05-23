@@ -107,6 +107,9 @@ exports.getForgotPassword = async (req, res) => {
 };
 
 exports.postForgotPassword = async (req, res) => {
+
+  console.log('Solicitud recibida en /forgot-password');
+  console.log('Body:', req.body);
   try {
     // Verificar content-type
     if (!req.is('application/json')) {
