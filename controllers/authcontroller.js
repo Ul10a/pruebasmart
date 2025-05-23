@@ -106,16 +106,26 @@ exports.getForgotPassword = async (req, res) => {
   res.status(404).send('Esta ruta no se usa directamente');
 };
 
-exports.postForgotPassword = async (req, res) => { // <-- Nota el async aquí
+exports.postForgotPassword = async (req, res) => {
   try {
+    // Verificar content-type
+    if (!req.is('application/json')) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Content-Type debe ser application/json' 
+      });
+    }
+
     const { email } = req.body;
-    
+
+    // Validación
     if (!email) {
       return res.status(400).json({
         success: false,
         message: 'El correo electrónico es requerido'
       });
     }
+
 
     const user = await User.findOne({ email });
     if (!user) {
