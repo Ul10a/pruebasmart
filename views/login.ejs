@@ -234,47 +234,58 @@
 </script>
 <script>
   document.getElementById('recoveryForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const email = form.email.value;
+  e.preventDefault();
+  
+  const form = e.target;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn.innerHTML;
 
-    try {
-      const response = await fetch(form.action, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
+  // Mostrar estado de carga
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+  submitBtn.disabled = true;
 
-      // Verificar el content-type de la respuesta
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Respuesta no es JSON');
-      }
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        email: form.email.value
+      })
+    });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Error en la solicitud');
-      }
-
-      // Mostrar mensaje de éxito
-      document.getElementById('successMessage').style.display = 'block';
-      
-      setTimeout(() => {
-        document.getElementById('forgotForm').classList.remove('show');
-        document.getElementById('successMessage').style.display = 'none';
-      }, 3000);
-
-    } catch (error) {
-      console.error('Error:', error);
-      alert(error.message.includes('<') ? 'Error en el servidor' : error.message);
+    // Verificar si la respuesta es JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(text || 'Respuesta no es JSON');
     }
-  });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Error en la solicitud');
+    }
+
+    // Mostrar mensaje de éxito
+    document.getElementById('successMessage').style.display = 'block';
+    
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+      document.getElementById('forgotForm').classList.remove('show');
+      document.getElementById('successMessage').style.display = 'none';
+    }, 3000);
+
+  } catch (error) {
+    console.error('Error:', error);
+    alert(error.message.includes('<html>') ? 'Error en el servidor' : error.message);
+  } finally {
+    submitBtn.innerHTML = originalBtnText;
+    submitBtn.disabled = false;
+  }
+});
 </script>
 </body>
 </html>
