@@ -1,115 +1,168 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const MongoStore = require('connect-mongo'); 
+const MongoStore = require('connect-mongo');
 const session = require('express-session');
 const dotenv = require('dotenv');
 const path = require('path');
+const cors = require('cors'); // Nuevo: Para manejar CORS
+const helmet = require('helmet'); // Nuevo: Seguridad HTTP
+const rateLimit = require('express-rate-limit'); // Nuevo: Limitar peticiones
 const app = express();
 
-// Configuración de entorno (seguridad recomendada)
-//require('dotenv').config();
+// =============================================
+// 1. CONFIGURACIÓN INICIAL (MEJORADO)
+// =============================================
 dotenv.config({ path: '.env' });
 
-// =============================================
-// CONEXIÓN A MONGODB (MEJORADA)
-// =============================================
-mongoose.connect(process.env.MONGODB_URI , {
-  useNewUrlParser: true,
-  retryWrites: true,
-  w: 'majority'
-})
-.then(() => console.log('✅ Conectado a MongoDB'))
-.catch(err => {
-  console.error('❌ Error en MongoDB:', err);
-  process.exit(1); // Salir si no hay conexión a DB
+// Validación de variables de entorno críticas
+const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET', 'EMAIL_USER', 'EMAIL_PASSWORD'];
+requiredEnvVars.forEach(varName => {
+  if (!process.env[varName]) {
+    console.error(`❌ Falta la variable de entorno requerida: ${varName}`);
+    process.exit(1);
+  }
 });
 
+// =============================================
+// 2. CONEXIÓN A MONGODB (CON RECONEXIÓN)
+// =============================================
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  retryWrites: true,
+  w: 'majority',
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000
+};
+
+mongoose.connect(process.env.MONGODB_URI, mongooseOptions)
+  .then(() => console.log('✅ Conectado a MongoDB'))
+  .catch(err => {
+    console.error('❌ Error en MongoDB:', err.message);
+    process.exit(1);
+  });
+
+// Manejo de eventos de conexión
+mongoose.connection.on('connected', () => console.log('Mongoose conectado'));
+mongoose.connection.on('disconnected', () => console.log('Mongoose desconectado'));
+mongoose.connection.on('error', err => console.error('Error en Mongoose:', err));
 
 // =============================================
-// CONFIGURACIÓN DE MIDDLEWARES (ACTUALIZADA)
+// 3. MIDDLEWARES ESENCIALES (ACTUALIZADO)
 // =============================================
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.use(helmet()); // Seguridad HTTP
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true
+}));
 
-// Configuración mejorada de body-parser (CRUCIAL PARA FORMULARIOS/API)
+// Limitar peticiones (protección contra ataques DDoS)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100 // límite por IP
+});
+app.use(limiter);
+
+// Configuración mejorada de body-parser
 app.use(express.json({
-  limit: '10mb',       // Límite para datos JSON
-  strict: true         // Solo acepta objetos y arrays
+  limit: '10mb',
+  strict: true
 }));
-
 app.use(express.urlencoded({
-  extended: true,      // Permite objetos anidados
-  limit: '10mb',       // Límite para datos de formularios
-  parameterLimit: 1000 // Máximo número de parámetros
+  extended: true,
+  limit: '10mb'
 }));
 
-// Configuración de sesión (mejorada para seguridad)
+// Configuración de sesión (seguridad mejorada)
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ 
+  store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
-    ttl: 24 * 60 * 60 // 1 día
+    ttl: 24 * 60 * 60,
+    autoRemove: 'native'
   }),
   cookie: {
-    secure: true, // ¡Obligatorio en Render.com!
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'none', // Necesario si usas HTTPS
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000
   },
-  proxy: true // Importante para Render.com
+  proxy: true
 }));
 
-// Archivos estáticos con cache control (optimización)
+// Archivos estáticos con cache seguro
 app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1d', // Cache por 1 día
-  etag: true
-}));
-
-// =============================================
-// RUTAS PRINCIPALES
-// =============================================
-app.get('/', (req, res) => {
-  res.redirect('/login');
+  maxAge: '1d',
+  etag: true,
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
 });
 
-
-// Estos middlewares deben estar antes de tus rutas
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
+// =============================================
+// 4. RUTAS PRINCIPALES (MEJORADO)
+// =============================================
+app.get('/healthcheck', (req, res) => {
+  res.json({
+    status: 'healthy',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date()
+  });
+});
 
 // Importar rutas
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 
 // Montar rutas con prefijos
-app.use('/', authRoutes);
+app.use('/auth', authRoutes); // Cambiado a /auth para mejor estructura
 app.use('/products', productRoutes);
 
 // =============================================
-// MANEJO DE ERRORES (NUEVO)
+// 5. MANEJO DE ERRORES (COMPLETO)
 // =============================================
+// Ruta no encontrada
 app.use((req, res, next) => {
-  res.status(404).render('error', { 
-    error: 'Página no encontrada' 
+  res.status(404).json({
+    success: false,
+    message: 'Ruta no encontrada'
   });
 });
 
-// Manejo de otros errores
+// Manejo centralizado de errores
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).render('error', { 
-    error: 'Ocurrió un error en el servidor' 
+  console.error('🔥 Error:', err.stack);
+
+  const statusCode = err.statusCode || 500;
+  const message = statusCode === 500 ? 'Error interno del servidor' : err.message;
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
 // =============================================
-// INICIAR SERVIDOR (CON VALIDACIÓN)
+// 6. INICIO DEL SERVIDOR (CON VALIDACIONES)
 // =============================================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Servidor en http://localhost:${PORT}`);
   console.log(`🔧 Entorno: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Manejo de cierre elegante
+process.on('SIGTERM', () => {
+  console.log('🛑 Apagando servidor...');
+  server.close(() => {
+    mongoose.connection.close(false, () => {
+      console.log('✅ Servidor y MongoDB cerrados');
+      process.exit(0);
+    });
+  });
 });
