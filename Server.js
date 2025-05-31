@@ -87,12 +87,17 @@ app.use(session({
   proxy: true
 }));
 
-// Configuración CORREGIDA de archivos estáticos
+// Configuración de archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
 // =============================================
 // 4. RUTAS
 // =============================================
+// Ruta raíz - Redirige a login
+app.get('/', (req, res) => {
+  res.redirect('/auth/login');
+});
+
 app.get('/healthcheck', (req, res) => {
   res.json({
     status: 'healthy',
