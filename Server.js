@@ -9,144 +9,94 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const app = express();
 
-// =============================================
-// 1. CONFIGURACIÓN INICIAL
-// =============================================
+// Configuración inicial
 dotenv.config({ path: '.env' });
 
-// Validación de variables de entorno
-const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET'];
-requiredEnvVars.forEach(varName => {
+// Verificación de variables de entorno
+['MONGODB_URI', 'SESSION_SECRET'].forEach(varName => {
   if (!process.env[varName]) {
-    console.error(`❌ Falta la variable de entorno requerida: ${varName}`);
+    console.error(`❌ Falta variable de entorno: ${varName}`);
     process.exit(1);
   }
 });
 
-// =============================================
-// 2. CONEXIÓN A MONGODB
-// =============================================
-const mongooseOptions = {
+// Conexión a MongoDB
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-  retryWrites: true,
-  w: 'majority',
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000
-};
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB conectado'))
+.catch(err => {
+  console.error('❌ Error MongoDB:', err.message);
+  process.exit(1);
+});
 
-mongoose.connect(process.env.MONGODB_URI, mongooseOptions)
-  .then(() => console.log('✅ Conectado a MongoDB'))
-  .catch(err => {
-    console.error('❌ Error en MongoDB:', err.message);
-    process.exit(1);
-  });
+// Configuración de vistas EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-mongoose.connection.on('connected', () => console.log('Mongoose conectado'));
-mongoose.connection.on('disconnected', () => console.log('Mongoose desconectado'));
-mongoose.connection.on('error', err => console.error('Error en Mongoose:', err));
-
-// =============================================
-// 3. MIDDLEWARES
-// =============================================
+// Middlewares
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   credentials: true
 }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100
-}));
-
-app.use(express.json({
-  limit: '10mb',
-  strict: true
-}));
-
-app.use(express.urlencoded({
-  extended: true,
-  limit: '10mb'
-}));
-
+// Configuración de sesión
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 24 * 60 * 60
-  }),
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000
-  },
-  proxy: true
+  }
 }));
 
-// Configuración de archivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
-
-// =============================================
-// 4. RUTAS
-// =============================================
-// Ruta raíz - Redirige a login
+// Rutas principales
 app.get('/', (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/dashboard');
+  }
   res.redirect('/auth/login');
 });
 
-app.get('/healthcheck', (req, res) => {
-  res.json({
-    status: 'healthy',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    timestamp: new Date()
-  });
-});
-
+// Importar rutas
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 
 app.use('/auth', authRoutes);
 app.use('/products', productRoutes);
 
-// =============================================
-// 5. MANEJO DE ERRORES
-// =============================================
+// Ruta dashboard (asegúrate de tener este controlador)
+app.get('/dashboard', (req, res) => {
+  if (!req.session.userId) {
+    return res.redirect('/auth/login');
+  }
+  res.render('dashboard', { username: req.session.username });
+});
+
+// Manejo de errores
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Ruta no encontrada'
+  res.status(404).render('error', { 
+    error: 'Página no encontrada' 
   });
 });
 
 app.use((err, req, res, next) => {
   console.error('🔥 Error:', err.stack);
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    success: false,
-    message: err.message || 'Error interno del servidor',
-    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  res.status(500).render('error', {
+    error: 'Error interno del servidor'
   });
 });
 
-// =============================================
-// 6. INICIO DEL SERVIDOR
-// =============================================
+// Iniciar servidor
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`🚀 Servidor en http://localhost:${PORT}`);
-  console.log(`🔧 Entorno: ${process.env.NODE_ENV || 'development'}`);
-});
-
-process.on('SIGTERM', () => {
-  console.log('🛑 Apagando servidor...');
-  server.close(() => {
-    mongoose.connection.close(false, () => {
-      console.log('✅ Servidor y MongoDB cerrados');
-      process.exit(0);
-    });
-  });
 });
