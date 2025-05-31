@@ -8,7 +8,9 @@ router.use(express.json()); // Para parsear application/json
 router.use(express.urlencoded({ extended: true }));
 router.get('/register', authController.showRegister);
 router.post('/register', authController.register);
-router.get('/login', authController.showLogin);
+router.get('/login', (req, res) => {
+  res.render('auth/login', { error: null });
+});
 router.post('/login', authController.login);
 router.post('/logout', authController.logout);
 router.get('/contact', (req, res) => { res.render('contact'); });
