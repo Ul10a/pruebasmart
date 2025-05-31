@@ -233,57 +233,30 @@
     });
 </script>
 <script>
+  document.getElementById('toggleForgot').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('forgotForm').classList.toggle('show');
+  });
+
   document.getElementById('recoveryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const form = e.target;
     const email = form.email.value.trim();
-    const submitBtn = form.querySelector('button[type="submit"]');
     
-    // Validación frontend
-    if (!email || !email.includes('@')) {
-      alert('Por favor ingresa un email válido');
-      return;
-    }
-
-    // Estado de carga
-    submitBtn.disabled = true;
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-
     try {
-      const response = await fetch('https://pruebasmart.onrender.com/auth/forgot-password', {
+      const response = await fetch('/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
-
-      // Manejo de respuestas no-JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        throw new Error(text || 'Respuesta inválida del servidor');
-      }
-
-      const data = await response.json();
       
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Error al enviar el correo');
-      }
-
-      // Éxito
-      document.getElementById('successMessage').style.display = 'block';
-      setTimeout(() => {
-        document.getElementById('forgotForm').classList.remove('show');
-        document.getElementById('successMessage').style.display = 'none';
-      }, 3000);
-
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      
+      alert('Instrucciones enviadas a tu correo');
+      document.getElementById('forgotForm').classList.remove('show');
     } catch (error) {
-      console.error('Error en el frontend:', error);
-      alert(error.message.replace(/<[^>]*>?/gm, '')); // Elimina etiquetas HTML
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
+      alert(error.message);
     }
   });
 </script>
